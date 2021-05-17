@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_restful import Resource, Api, abort, reqparse
+from flask_restful import Resource, Api, abort, reqparse, marshal_with, fields, marshal
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 
@@ -41,21 +41,12 @@ class Book(db.Model):
         return f'{self.book_id}'
 
 
-# db.create_all()
+db.create_all()
 
 # Request parser for post requests
 order_post_args = reqparse.RequestParser()
 order_post_args.add_argument("customer_id", type=str, help="Please send customer ID", required=True)
 order_post_args.add_argument("book_ids", type=int, action="append", help="Please send book Id(s)", required=True)
-
-
-# # Formating Get result output to {order_id: [book_ids]}
-# def list_output(customer_book_ids):
-#     book_id_list = []
-#     for book in customer_book_ids:
-#         book_id = book["book_id"]
-#         book_id_list.append(book_id)
-#     return book_id_list
 
 
 # GET request, input: customer_id output: {order_id: [book_ids]}
@@ -66,10 +57,23 @@ class ListOrders(Resource):
             abort(404, message=f"No customer with id: [{customer_id}] found")
 
         result = {}
+        i = 0
         for order_id in customer.order_ids:
-            book_ids = order_id.book_ids
-            book_id_list = [id for id in book_ids]
-            # result[str(order_id)] = book_id_list
+            resource_fields_order = {f"order_id_{i}": fields.Integer(attribute="order_id")}
+            order_dict = marshal(order_id, resource_fields_order)
+            order_id_temp = order_dict[f"order_id_{i}"]
+
+            result.update(order_dict)
+
+            order = Order.query.filter_by(order_id=order_id_temp).first()
+            j = 0
+            book = {}
+            for book_id in order.book_ids:
+                resource_fields_book = {f"book_id_{j}": fields.Integer(attribute="book_id")}
+                book_dict = marshal(book_id, resource_fields_book)
+                book.update(book_dict)
+                j += 1
+            result["book_ids"] = book
 
         return result
 

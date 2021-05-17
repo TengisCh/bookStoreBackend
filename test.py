@@ -2,11 +2,11 @@ import requests
 
 BASE = "http://127.0.0.1:5000/"
 
-# postResponse = requests.post(BASE + "order", {"customer_id": 123456, "book_ids": [1, 2, 3, 4]})
-# print(postResponse.json())
+postResponse = requests.post(BASE + "order", {"customer_id": 123456, "book_ids": [1, 2, 3, 4]})
+print(postResponse.json())
 
-# input()
-#
+input()
+
 getResponse = requests.get(BASE + "list/123456")
 print(getResponse.json())
 #
