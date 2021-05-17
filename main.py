@@ -1,8 +1,7 @@
 from flask import Flask
-from flask_restful import Resource, Api, abort, reqparse, marshal_with, fields, marshal
+from flask_restful import Resource, Api, abort, reqparse, fields, marshal
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import backref
 
 app = Flask(__name__)
 api = Api(app)
@@ -42,15 +41,9 @@ class Book(db.Model):
         return f'{self.book_id}'
 
 
-db.create_all()
+# db.create_all()
 
-# Request parser for post requests
-order_post_args = reqparse.RequestParser()
-order_post_args.add_argument("customer_id", type=str, help="Please send customer ID", required=True)
-order_post_args.add_argument("book_ids", type=int, action="append", help="Please send book Id(s)", required=True)
-
-
-# GET request, input: customer_id output: {order_id: [book_ids]}
+# GET request, input: customer_id output: order_id, book_ids
 class ListOrders(Resource):
     def get(self, customer_id):
         customer = Customer.query.filter_by(customer_id=customer_id).first()
@@ -88,6 +81,12 @@ def add_to_database(value):
     db.session.commit()
 
 
+# Request parser for post requests
+order_post_args = reqparse.RequestParser()
+order_post_args.add_argument("customer_id", type=int, help="Please send customer ID", required=True)
+order_post_args.add_argument("book_ids", type=int, action="append", help="Please send book Id(s)", required=True)
+
+
 # POST request, input customer_id, book_ids output: order_id
 class PlaceOrder(Resource):
     def post(self):
@@ -115,9 +114,9 @@ class DeleteOrder(Resource):
 
 
 # Request APIs
-api.add_resource(ListOrders, "/list/<string:customer_id>")
+api.add_resource(ListOrders, "/list/<int:customer_id>")
 api.add_resource(PlaceOrder, "/order")
-api.add_resource(DeleteOrder, "/delete/<string:order_id>")
+api.add_resource(DeleteOrder, "/delete/<int:order_id>")
 
 if __name__ == "__main__":
     app.run(debug=True)
