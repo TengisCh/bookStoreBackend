@@ -41,7 +41,7 @@ class Book(db.Model):
         return f'{self.book_id}'
 
 
-# db.create_all()
+db.create_all()
 
 # GET request, input: customer_id output: order_id, book_ids
 class ListOrders(Resource):
@@ -119,4 +119,4 @@ api.add_resource(PlaceOrder, "/order")
 api.add_resource(DeleteOrder, "/delete/<int:order_id>")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

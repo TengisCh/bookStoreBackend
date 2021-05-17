@@ -12,6 +12,11 @@ print(getResponse.json())
 
 input()
 
+getResponse = requests.get(BASE + "list/654321")
+print(getResponse.json())
+
+input()
+
 order_id = postResponse.json()["order_id"]
 deleteResponse = requests.delete(BASE + f"delete/{order_id}")
 print(deleteResponse)
