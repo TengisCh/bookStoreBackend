@@ -2,6 +2,7 @@ from flask import Flask
 from flask_restful import Resource, Api, abort, reqparse, marshal_with, fields, marshal
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import backref
 
 app = Flask(__name__)
 api = Api(app)
@@ -25,7 +26,7 @@ class Order(db.Model):
     order_id = db.Column(db.String(20), nullable=False)
 
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.customer_id'))
-    book_ids = db.relationship('Book', backref='order', lazy=True)
+    book_ids = db.relationship('Book', backref='order', cascade="all, delete-orphan", lazy=True)
 
     def __repr__(self):
         return f'{self.order_id}'
@@ -106,14 +107,17 @@ class PlaceOrder(Resource):
 
 
 # DELETE request, input: order_id
-# class DeleteOrder(Resource):
-#     def delete(self, order_id):
+class DeleteOrder(Resource):
+    def delete(self, order_id):
+        order = Order.query.filter_by(order_id=order_id).first()
+        db.session.delete(order)
+        db.session.commit()
 
 
 # Request APIs
 api.add_resource(ListOrders, "/list/<string:customer_id>")
 api.add_resource(PlaceOrder, "/order")
-# api.add_resource(DeleteOrder, "/delete/<string:order_id>")
+api.add_resource(DeleteOrder, "/delete/<string:order_id>")
 
 if __name__ == "__main__":
     app.run(debug=True)
